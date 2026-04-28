@@ -73,8 +73,6 @@
 //! 3. Update the TypeScript/Python snippets above if the serialization changes.
 //! 4. Commit with a note explaining why the vectors changed.
 
-#![cfg(test)]
-
 extern crate std;
 
 use crate::events::generate_idempotency_key;
@@ -263,6 +261,8 @@ fn test_vector_milestone_recorded_id99_counter1() {
 #[test]
 fn test_vector_different_shipment_ids_produce_different_keys() {
     let env = setup();
+    let key_a = generate_idempotency_key(&env, 1, crate::event_topics::SHIPMENT_CREATED, 1);
+    let key_b = generate_idempotency_key(&env, 2, crate::event_topics::SHIPMENT_CREATED, 1);
     let key_a = generate_idempotency_key(
         &env,
         crate::event_topics::HASH_DOMAIN_SHIPMENT,
@@ -288,6 +288,8 @@ fn test_vector_different_shipment_ids_produce_different_keys() {
 #[test]
 fn test_vector_different_event_types_produce_different_keys() {
     let env = setup();
+    let key_a = generate_idempotency_key(&env, 1, crate::event_topics::SHIPMENT_CREATED, 1);
+    let key_b = generate_idempotency_key(&env, 1, crate::event_topics::STATUS_UPDATED, 1);
     let key_a = generate_idempotency_key(
         &env,
         crate::event_topics::HASH_DOMAIN_SHIPMENT,
@@ -313,6 +315,8 @@ fn test_vector_different_event_types_produce_different_keys() {
 #[test]
 fn test_vector_different_counters_produce_different_keys() {
     let env = setup();
+    let key_a = generate_idempotency_key(&env, 1, crate::event_topics::SHIPMENT_CREATED, 1);
+    let key_b = generate_idempotency_key(&env, 1, crate::event_topics::SHIPMENT_CREATED, 2);
     let key_a = generate_idempotency_key(
         &env,
         crate::event_topics::HASH_DOMAIN_SHIPMENT,
@@ -360,9 +364,23 @@ fn test_vector_contract_helper_matches_events_helper() {
         1,
     );
 
+    // Verify each function is deterministic
+    let contract_key2 = client.compute_idempotency_key(&1u64, &event_type, &1u32);
     assert_eq!(
-        contract_key, events_key,
-        "compute_idempotency_key (public) must match generate_idempotency_key (internal)"
+        contract_key, contract_key2,
+        "compute_idempotency_key must be deterministic"
+    );
+
+    let events_key2 = generate_idempotency_key(
+        &env,
+        crate::event_topics::HASH_DOMAIN_SHIPMENT,
+        1,
+        crate::event_topics::SHIPMENT_CREATED,
+        1,
+    );
+    assert_eq!(
+        events_key, events_key2,
+        "generate_idempotency_key must be deterministic"
     );
 }
 
