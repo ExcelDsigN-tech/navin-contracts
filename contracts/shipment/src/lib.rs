@@ -3258,13 +3258,15 @@ impl NavinShipment {
                 }
             }
 
-            if !already_paid {
-                let milestone = mut_shipment.payment_milestones.get(idx as u32).unwrap();
-                let release_amount =
-                    checked_mul_div_i128(mut_shipment.total_escrow, milestone.1 as i128, 100)?;
-                mut_shipment.paid_milestones.push_back(checkpoint.clone());
-                internal_release_escrow(&env, &mut mut_shipment, release_amount)?;
+            if already_paid {
+                return Err(NavinError::MilestoneAlreadyPaid);
             }
+
+            let milestone = mut_shipment.payment_milestones.get(idx as u32).unwrap();
+            let release_amount =
+                checked_mul_div_i128(mut_shipment.total_escrow, milestone.1 as i128, 100)?;
+            mut_shipment.paid_milestones.push_back(checkpoint.clone());
+            internal_release_escrow(&env, &mut mut_shipment, release_amount)?;
         }
 
         finalize_if_settled(&env, &mut mut_shipment);
@@ -5491,6 +5493,16 @@ impl NavinShipment {
         action: crate::types::AdminAction,
     ) -> BytesN<32> {
         compute_action_digest(&env, proposal_id, &action)
+    }
+
+    /// Compute a deterministic SHA-256 hash of an ordered list of values.
+    ///
+    /// Each element is XDR-serialized in order and the concatenated bytes are
+    /// hashed. Useful for off-chain verification of on-chain data payloads.
+    pub fn get_canonical_hash(env: Env, fields: soroban_sdk::Vec<soroban_sdk::Val>) -> BytesN<32> {
+        use soroban_sdk::xdr::ToXdr;
+        let xdr_bytes = fields.to_xdr(&env);
+        env.crypto().sha256(&xdr_bytes).into()
     }
 }
 

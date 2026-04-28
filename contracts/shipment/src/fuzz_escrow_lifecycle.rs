@@ -390,18 +390,15 @@ fn fuzz_escrow_refund_on_cancellation() {
         let amount = ((seed % 999_999) + 1) as i128;
         client.deposit_escrow(&company, &id, &amount);
 
-        // Cancel the shipment
+        // Cancel the shipment — auto-zeros escrow and finalizes
         let reason_hash = hash_from_seed(&env, seed.wrapping_add(99));
         client.cancel_shipment(&company, &id, &reason_hash);
 
-        // Refund
-        client.refund_escrow(&company, &id);
-
-        // Property: escrow balance is 0 after refund
+        // Property: escrow balance is 0 after cancel (cancel auto-handles escrow)
         let balance = client.get_escrow_balance(&id);
         assert_eq!(
             balance, 0,
-            "Escrow balance should be 0 after refund, got {balance} for shipment {id}"
+            "Escrow balance should be 0 after cancel, got {balance} for shipment {id}"
         );
     }
 }

@@ -356,6 +356,12 @@ pub fn error_info(error: NavinError) -> ContractErrorInfo {
             NoRetry,
             "Token decimals do not match the expected value (7); use a Stellar-standard token.",
         ),
+        NavinError::CreationQuotaExceeded => (
+            53,
+            LimitExceeded,
+            RetryAfterStateChange,
+            "Company has exceeded the shipment creation quota for the current time window.",
+        ),
     };
 
     ContractErrorInfo {

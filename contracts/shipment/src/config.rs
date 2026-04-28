@@ -758,6 +758,8 @@ mod tests {
             max_notes_per_shipment: 100,
             max_evidence_per_dispute: 100,
             max_breaches_per_shipment: 100,
+            creation_quota_max: 0,
+            creation_quota_window_seconds: 3600,
         };
 
         let checksums = [
@@ -845,6 +847,8 @@ mod tests {
             max_notes_per_shipment: 1,
             max_evidence_per_dispute: 1,
             max_breaches_per_shipment: 1,
+            creation_quota_max: 0,
+            creation_quota_window_seconds: 3600,
         };
 
         let config_max = ContractConfig {
@@ -864,6 +868,8 @@ mod tests {
             max_notes_per_shipment: 1000,
             max_evidence_per_dispute: 1000,
             max_breaches_per_shipment: 1000,
+            creation_quota_max: 100,
+            creation_quota_window_seconds: 86_400,
         };
 
         let checksum_min = compute_config_checksum(&config_min, &env);

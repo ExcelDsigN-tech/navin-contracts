@@ -56,14 +56,18 @@ mod tests {
     ) -> Result<u64, crate::NavinError> {
         let hash = make_hash(env, seed);
         let deadline = future_deadline(env);
-        client.try_create_shipment(
+        match client.try_create_shipment(
             company,
             &Address::generate(env),
             carrier,
             &hash,
             &Vec::new(env),
             &deadline,
-        )
+        ) {
+            Ok(Ok(id)) => Ok(id),
+            Err(Ok(e)) => Err(e),
+            _ => panic!("unexpected error in create_one"),
+        }
     }
 
     // ── quota disabled by default ────────────────────────────────────────────

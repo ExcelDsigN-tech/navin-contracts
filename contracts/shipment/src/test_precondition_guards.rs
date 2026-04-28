@@ -139,8 +139,7 @@ mod tests {
                 &hash,
                 &Vec::new(&env),
                 &deadline,
-            )
-            .unwrap();
+            );
 
         let hash2 = make_hash(&env, 4);
         // company is not the carrier — should be Unauthorized.
@@ -185,8 +184,7 @@ mod tests {
                 &hash,
                 &Vec::new(&env),
                 &deadline,
-            )
-            .unwrap();
+            );
 
         client.suspend_carrier(&admin, &carrier);
 
@@ -201,7 +199,7 @@ mod tests {
     fn require_shipment_returns_not_found_for_missing_id() {
         let (_env, client, _admin, _company, _carrier) = setup();
         let result = client.try_get_shipment(&9999);
-        assert_eq!(result, Err(Ok(NavinError::ShipmentNotFound)));
+        assert!(matches!(result, Err(Ok(NavinError::ShipmentNotFound))));
     }
 
     // ── require_not_finalized ────────────────────────────────────────────────
@@ -221,8 +219,7 @@ mod tests {
                 &hash,
                 &Vec::new(&env),
                 &deadline,
-            )
-            .unwrap();
+            );
 
         // Transition to Delivered (finalized when escrow == 0).
         let h2 = make_hash(&env, 9);
@@ -230,10 +227,8 @@ mod tests {
         test_utils::advance_past_rate_limit(&env);
         let h3 = make_hash(&env, 10);
         client.update_status(&carrier, &id, &ShipmentStatus::Delivered, &h3);
-        let h4 = make_hash(&env, 11);
-        client.confirm_delivery(&receiver, &id, &h4);
 
-        // Shipment is now finalized — further mutations should fail.
+        // Shipment is now finalized (auto-finalized on Delivered with no escrow) — further mutations should fail.
         let h5 = make_hash(&env, 12);
         let result = client.try_cancel_shipment(&company, &id, &h5);
         assert_eq!(result, Err(Ok(NavinError::ShipmentFinalized)));

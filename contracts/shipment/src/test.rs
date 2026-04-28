@@ -3464,9 +3464,11 @@ fn test_milestone_payment_duplicate_record_no_double_pay() {
     client.record_milestone(&carrier, &shipment_id, &Symbol::new(&env, "m1"), &data_hash);
     assert_eq!(client.get_shipment(&shipment_id).escrow_amount, 500);
 
-    // Record Milestone 1 AGAIN
-    client.record_milestone(&carrier, &shipment_id, &Symbol::new(&env, "m1"), &data_hash);
-    assert_eq!(client.get_shipment(&shipment_id).escrow_amount, 500); // Should still be 500
+    // Record Milestone 1 AGAIN — must be rejected to prevent double-pay
+    let dup_result = client.try_record_milestone(&carrier, &shipment_id, &Symbol::new(&env, "m1"), &data_hash);
+    assert_eq!(dup_result, Err(Ok(crate::NavinError::MilestoneAlreadyPaid)));
+    // Escrow must still be 500 — no double payment
+    assert_eq!(client.get_shipment(&shipment_id).escrow_amount, 500);
 }
 // ============= Contract Upgrade Tests =============
 
@@ -6268,7 +6270,7 @@ fn test_resolve_dispute_fails_without_reason_hash() {
         &crate::DisputeResolution::ReleaseToCarrier,
         &empty_hash,
     );
-    assert_eq!(res, Err(Ok(crate::NavinError::InvalidHash)));
+    assert_eq!(res, Err(Ok(crate::NavinError::DisputeReasonHashMissing)));
 }
 
 #[test]
@@ -6661,7 +6663,7 @@ fn test_resolve_dispute_returns_invalid_hash() {
         crate::ShipmentStatus::Disputed,
     );
 
-    client.resolve_dispute(&carrier, &shipment_id, &crate::DisputeResolution::RefundToCompany, &zero_hash);
+    client.resolve_dispute(&admin, &shipment_id, &crate::DisputeResolution::RefundToCompany, &zero_hash);
 }
 
 #[test]
@@ -6693,7 +6695,7 @@ fn test_upgrade_returns_invalid_hash() {
 }
 
 #[test]
-#[should_panic(expected = "Error(Contract, #3)")]
+#[should_panic(expected = "Error(Contract, #6)")]
 fn test_record_milestones_batch_returns_invalid_hash() {
     let (env, client, admin, token_contract) = setup_shipment_env();
     let zero_hash = BytesN::from_array(&env, &[0u8; 32]);

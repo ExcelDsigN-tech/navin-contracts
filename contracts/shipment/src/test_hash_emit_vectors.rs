@@ -261,8 +261,6 @@ fn test_vector_milestone_recorded_id99_counter1() {
 #[test]
 fn test_vector_different_shipment_ids_produce_different_keys() {
     let env = setup();
-    let key_a = generate_idempotency_key(&env, 1, crate::event_topics::SHIPMENT_CREATED, 1);
-    let key_b = generate_idempotency_key(&env, 2, crate::event_topics::SHIPMENT_CREATED, 1);
     let key_a = generate_idempotency_key(
         &env,
         crate::event_topics::HASH_DOMAIN_SHIPMENT,
@@ -288,8 +286,6 @@ fn test_vector_different_shipment_ids_produce_different_keys() {
 #[test]
 fn test_vector_different_event_types_produce_different_keys() {
     let env = setup();
-    let key_a = generate_idempotency_key(&env, 1, crate::event_topics::SHIPMENT_CREATED, 1);
-    let key_b = generate_idempotency_key(&env, 1, crate::event_topics::STATUS_UPDATED, 1);
     let key_a = generate_idempotency_key(
         &env,
         crate::event_topics::HASH_DOMAIN_SHIPMENT,
@@ -315,8 +311,6 @@ fn test_vector_different_event_types_produce_different_keys() {
 #[test]
 fn test_vector_different_counters_produce_different_keys() {
     let env = setup();
-    let key_a = generate_idempotency_key(&env, 1, crate::event_topics::SHIPMENT_CREATED, 1);
-    let key_b = generate_idempotency_key(&env, 1, crate::event_topics::SHIPMENT_CREATED, 2);
     let key_a = generate_idempotency_key(
         &env,
         crate::event_topics::HASH_DOMAIN_SHIPMENT,

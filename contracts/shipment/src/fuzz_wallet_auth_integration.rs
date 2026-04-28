@@ -153,17 +153,14 @@ fn wallet_auth_cancel_refund_path() {
     // Company deposits escrow
     client.deposit_escrow(&company, &id, &500_000i128);
 
-    // Company cancels
+    // Company cancels — auto-zeros escrow and finalizes
     client.cancel_shipment(&company, &id, &non_zero_hash(&env, 11));
     assert_eq!(client.get_shipment(&id).status, crate::ShipmentStatus::Cancelled);
-
-    // Company refunds
-    client.refund_escrow(&company, &id);
     assert_eq!(client.get_escrow_balance(&id), 0);
 
-    // Auth outcome: shipment finalized after refund
+    // Auth outcome: shipment finalized after cancel
     let s = client.get_shipment(&id);
-    assert!(s.finalized, "Shipment must be finalized after refund");
+    assert!(s.finalized, "Shipment must be finalized after cancel");
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

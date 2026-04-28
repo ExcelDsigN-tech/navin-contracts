@@ -18,7 +18,7 @@ pub const EXPECTED_TOKEN_DECIMALS: u32 = 7;
 /// use crate::types::DataKey;
 /// let key = DataKey::Admin;
 /// ```
-#[contracttype]
+#[contracttype(export = false)]
 pub enum DataKey {
     /// The contract admin address.
     Admin,
