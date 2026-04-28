@@ -200,6 +200,12 @@ pub const HASH_DOMAIN_NOTE: u8 = 0x09;
 
 /// Domain tag for dispute-evidence events (`evidence_added`).
 pub const HASH_DOMAIN_EVIDENCE: u8 = 0x0A;
+// ── Escrow freeze ─────────────────────────────────────────────────────────────
+
+/// Emitted when escrow is frozen due to a dispute or safety control.
+/// Contains a structured reason code (`EscrowFreezeReason`) so that
+/// indexers can classify the freeze without parsing free-form text.
+pub const ESCROW_FROZEN: &str = "escrow_frozen";
 
 #[cfg(test)]
 mod tests {
@@ -244,6 +250,7 @@ mod tests {
             NOTE_APPENDED,
             EVIDENCE_ADDED,
             MIGRATION_REPORTED,
+            ESCROW_FROZEN,
         ];
         for topic in &topics {
             assert!(
@@ -293,6 +300,7 @@ mod tests {
         assert_eq!(NOTE_APPENDED, "note_appended");
         assert_eq!(EVIDENCE_ADDED, "evidence_added");
         assert_eq!(MIGRATION_REPORTED, "migration_reported");
+        assert_eq!(ESCROW_FROZEN, "escrow_frozen");
     }
 
     #[test]
@@ -330,6 +338,7 @@ mod tests {
             NOTE_APPENDED,
             EVIDENCE_ADDED,
             MIGRATION_REPORTED,
+            ESCROW_FROZEN,
         ];
         topics.sort_unstable();
         // After sorting, any duplicates are adjacent — windows(2) catches them.
