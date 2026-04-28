@@ -6163,6 +6163,51 @@ fn test_get_status_summary_populated() {
     assert_eq!(summary.delivered, 0);
 }
 
+#[test]
+fn test_get_non_terminal_count_mixed_states() {
+    let (env, client, admin, token_contract) = setup_shipment_env();
+    let company = Address::generate(&env);
+    let receiver = Address::generate(&env);
+    let carrier = Address::generate(&env);
+    let data_hash = BytesN::from_array(&env, &[1u8; 32]);
+    let deadline = env.ledger().timestamp() + 3600;
+
+    client.initialize(&admin, &token_contract);
+    client.add_company(&admin, &company);
+
+    // Create 5 shipments
+    for i in 1..=5 {
+        client.create_shipment(
+            &company,
+            &receiver,
+            &carrier,
+            &BytesN::from_array(&env, &[i as u8; 32]),
+            &soroban_sdk::Vec::new(&env),
+            &deadline,
+        );
+    }
+
+    // Status: 5 Created (Non-terminal)
+    assert_eq!(client.get_non_terminal_count(), 5);
+
+    // Update 1 to InTransit (Non-terminal)
+    client.update_status(&carrier, &1, &ShipmentStatus::InTransit, &data_hash);
+    assert_eq!(client.get_non_terminal_count(), 5);
+
+    // Update 1 to Delivered (Terminal)
+    client.confirm_delivery(&receiver, &1, &data_hash);
+    assert_eq!(client.get_non_terminal_count(), 4);
+
+    // Cancel 1 shipment (Terminal)
+    client.cancel_shipment(&company, &2, &data_hash);
+    assert_eq!(client.get_non_terminal_count(), 3);
+
+    // Raise dispute for 1 shipment (Terminal according to requirements)
+    client.raise_dispute(&company, &3, &data_hash);
+    assert_eq!(client.get_non_terminal_count(), 2);
+}
+
+
 
 // ============= Shipment Limit Tests =============
 

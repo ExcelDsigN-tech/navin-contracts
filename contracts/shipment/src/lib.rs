@@ -1143,6 +1143,29 @@ impl NavinShipment {
         })
     }
 
+    /// Retrieve the total number of non-terminal shipments currently tracked.
+    ///
+    /// Non-terminal shipments are those in one of the following states:
+    /// 'Created', 'InTransit', 'AtCheckpoint', or 'PartiallyDelivered'.
+    ///
+    /// # Arguments
+    /// * `env` - Execution environment.
+    ///
+    /// # Returns
+    /// * `Result<u64, NavinError>` - Total count of active (non-terminal) shipments.
+    ///
+    /// # Errors
+    /// * `NavinError::NotInitialized` - If contract is not initialized.
+    pub fn get_non_terminal_count(env: Env) -> Result<u64, NavinError> {
+        require_initialized(&env)?;
+        let count = storage::get_status_count(&env, &ShipmentStatus::Created)
+            + storage::get_status_count(&env, &ShipmentStatus::InTransit)
+            + storage::get_status_count(&env, &ShipmentStatus::AtCheckpoint)
+            + storage::get_status_count(&env, &ShipmentStatus::PartiallyDelivered);
+        Ok(count)
+    }
+
+
 
     /// Get the deterministic SHA-256 checksum of critical config fields.
     ///
