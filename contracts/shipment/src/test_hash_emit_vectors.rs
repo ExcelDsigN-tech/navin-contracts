@@ -296,6 +296,7 @@ fn test_vector_emitted_keys_match_recomputed() {
 
                     let recomputed = generate_idempotency_key(
                         &env,
+                        crate::event_topics::HASH_DOMAIN_SHIPMENT,
                         1,
                         crate::event_topics::SHIPMENT_CREATED,
                         emitted_counter,
