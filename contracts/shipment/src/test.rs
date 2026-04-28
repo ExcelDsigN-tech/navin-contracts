@@ -9,7 +9,7 @@ use crate::{
 use soroban_sdk::{
     contract, contracterror, contractimpl,
     testutils::{storage::Persistent, Address as _, Events},
-    Address, BytesN, Env, Symbol, TryFromVal,
+    Address, BytesN, Env, IntoVal, Symbol, TryFromVal,
 };
 
 #[contract]
@@ -2629,7 +2629,7 @@ fn test_record_milestones_batch_max_size() {
     for i in 0..10 {
         milestones.push_back((
             Symbol::new(&env, &std::format!("checkpoint_{i}")),
-            BytesN::from_array(&env, &[i as u8; 32]),
+            BytesN::from_array(&env, &[(i as u8) + 1; 32]),
         ));
     }
 
@@ -6268,7 +6268,7 @@ fn test_resolve_dispute_fails_without_reason_hash() {
         &crate::DisputeResolution::ReleaseToCarrier,
         &empty_hash,
     );
-    assert_eq!(res, Err(Ok(crate::NavinError::DisputeReasonHashMissing)));
+    assert_eq!(res, Err(Ok(crate::NavinError::InvalidHash)));
 }
 
 #[test]
@@ -6581,49 +6581,149 @@ fn test_create_shipment_returns_invalid_hash() {
 }
 
 // NOTE: This test is commented out because the feature may not be fully implemented yet
-// #[test]
-// #[should_panic(expected = "Error(Contract, #6)")]
-// fn test_update_status_returns_invalid_hash() {
-//     let (env, client, admin, token_contract) = setup_shipment_env();
-//     let company = Address::generate(&env);
-//     let receiver = Address::generate(&env);
-//     let carrier = Address::generate(&env);
-//     let data_hash = BytesN::from_array(&env, &[1u8; 32]);
-//     let zero_hash = BytesN::from_array(&env, &[0u8; 32]);
-//     let deadline = env.ledger().timestamp() + 3600;
-//
-//     client.initialize(&admin, &token_contract);
-//     client.add_company(&admin, &company);
-//
-//     let shipment_id = client.create_shipment(
-//         &company,
-//         &receiver,
-//         &carrier,
-//         &data_hash,
-//         &soroban_sdk::Vec::new(&env),
-//         &deadline,
-//     );
-//
-//     client.update_status(&carrier, &shipment_id, &ShipmentStatus::InTransit, &zero_hash);
-// }
+#[test]
+#[should_panic(expected = "Error(Contract, #6)")]
+fn test_update_status_returns_invalid_hash() {
+    let (env, client, admin, token_contract) = setup_shipment_env();
+    let company = Address::generate(&env);
+    let receiver = Address::generate(&env);
+    let carrier = Address::generate(&env);
+    let data_hash = BytesN::from_array(&env, &[1u8; 32]);
+    let zero_hash = BytesN::from_array(&env, &[0u8; 32]);
+    let deadline = env.ledger().timestamp() + 3600;
+
+    client.initialize(&admin, &token_contract);
+    client.add_company(&admin, &company);
+
+    let shipment_id = client.create_shipment(
+        &company,
+        &receiver,
+        &carrier,
+        &data_hash,
+        &soroban_sdk::Vec::new(&env),
+        &deadline,
+    );
+
+    client.update_status(
+        &carrier,
+        &shipment_id,
+        &ShipmentStatus::InTransit,
+        &zero_hash,
+    );
+}
 
 // NOTE: This test is commented out because the feature may not be fully implemented yet
-// #[test]
-// #[should_panic(expected = "Error(Contract, #6)")]
-// fn test_confirm_delivery_returns_invalid_hash() {
-//     let (env, client, admin, token_contract) = setup_shipment_env();
-//     let zero_hash = BytesN::from_array(&env, &[0u8; 32]);
-//
-//     let (receiver, _carrier, shipment_id) = setup_shipment_with_status(
-//         &env,
-//         &client,
-//         &admin,
-//         &token_contract,
-//         crate::ShipmentStatus::InTransit,
-//     );
-//
-//     client.confirm_delivery(&receiver, &shipment_id, &zero_hash);
-// }
+#[test]
+#[should_panic(expected = "Error(Contract, #6)")]
+fn test_confirm_delivery_returns_invalid_hash() {
+    let (env, client, admin, token_contract) = setup_shipment_env();
+    let zero_hash = BytesN::from_array(&env, &[0u8; 32]);
+
+    let (receiver, _carrier, shipment_id) = setup_shipment_with_status(
+        &env,
+        &client,
+        &admin,
+        &token_contract,
+        crate::ShipmentStatus::InTransit,
+    );
+
+    client.confirm_delivery(&receiver, &shipment_id, &zero_hash);
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #6)")]
+fn test_raise_dispute_returns_invalid_hash() {
+    let (env, client, admin, token_contract) = setup_shipment_env();
+    let zero_hash = BytesN::from_array(&env, &[0u8; 32]);
+
+    let (_receiver, carrier, shipment_id) = setup_shipment_with_status(
+        &env,
+        &client,
+        &admin,
+        &token_contract,
+        crate::ShipmentStatus::InTransit,
+    );
+
+    client.raise_dispute(&carrier, &shipment_id, &zero_hash);
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #36)")]
+fn test_resolve_dispute_returns_invalid_hash() {
+    let (env, client, admin, token_contract) = setup_shipment_env();
+    let zero_hash = BytesN::from_array(&env, &[0u8; 32]);
+
+    let (_receiver, _carrier, shipment_id) = setup_shipment_with_status(
+        &env,
+        &client,
+        &admin,
+        &token_contract,
+        crate::ShipmentStatus::Disputed,
+    );
+
+    client.resolve_dispute(
+        &admin,
+        &shipment_id,
+        &crate::DisputeResolution::ReleaseToCarrier,
+        &crate::DisputeResolution::RefundToCompany,
+        &zero_hash,
+    );
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #6)")]
+fn test_verify_data_hash_returns_invalid_hash() {
+    let (env, client, admin, token_contract) = setup_shipment_env();
+    let zero_hash = BytesN::from_array(&env, &[0u8; 32]);
+
+    let (_receiver, _carrier, shipment_id) = setup_shipment_with_status(
+        &env,
+        &client,
+        &admin,
+        &token_contract,
+        crate::ShipmentStatus::Delivered,
+    );
+
+    client.verify_data_hash(&shipment_id, &crate::ShipmentStatus::Delivered, &zero_hash);
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #6)")]
+fn test_upgrade_returns_invalid_hash() {
+    let (env, client, admin, token_contract) = setup_shipment_env();
+    let zero_hash = BytesN::from_array(&env, &[0u8; 32]);
+
+    client.initialize(&admin, &token_contract);
+
+    client.upgrade(&admin, &zero_hash, &2u32);
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #3)")]
+fn test_record_milestones_batch_returns_invalid_hash() {
+    let (env, client, admin, token_contract) = setup_shipment_env();
+    let zero_hash = BytesN::from_array(&env, &[0u8; 32]);
+    let valid_hash = BytesN::from_array(&env, &[1u8; 32]);
+
+    let (_receiver, carrier, shipment_id) = setup_shipment_with_status(
+        &env,
+        &client,
+        &admin,
+        &token_contract,
+        crate::ShipmentStatus::InTransit,
+    );
+
+    // Carrier must be registered in the role system before calling record_milestones_batch
+    client.add_carrier(&admin, &carrier);
+
+    let milestones = soroban_sdk::vec![
+        &env,
+        (Symbol::new(&env, "checkpoint1"), valid_hash),
+        (Symbol::new(&env, "checkpoint2"), zero_hash),
+    ];
+
+    client.record_milestones_batch(&carrier, &shipment_id, &milestones);
+}
 
 // ============= Error #11: CounterOverflow Tests =============
 
@@ -9392,9 +9492,9 @@ fn test_force_cancel_shipment_unauthorized_company() {
     client.force_cancel_shipment(&company, &shipment_id, &reason_hash);
 }
 
-/// All-zero reason_hash is rejected with ForceCancelReasonHashMissing (#34).
+/// All-zero reason_hash is rejected with InvalidHash (#6).
 #[test]
-#[should_panic(expected = "Error(Contract, #34)")]
+#[should_panic(expected = "Error(Contract, #6)")]
 fn test_force_cancel_shipment_zero_reason_hash_rejected() {
     let (env, client, admin, _token_contract, _company, shipment_id) = setup_force_cancel_env();
 
@@ -10188,6 +10288,26 @@ fn test_guardian_can_resolve_disputes() {
 
     let shipment = client.get_shipment(&shipment_id);
     assert_eq!(shipment.status, ShipmentStatus::Cancelled);
+}
+
+#[test]
+fn test_get_canonical_hash() {
+    let (env, client, admin, token_contract) = setup_shipment_env();
+    client.initialize(&admin, &token_contract);
+
+    let mut fields = soroban_sdk::Vec::new(&env);
+    fields.push_back(Symbol::new(&env, "test").into_val(&env));
+    fields.push_back(123_u64.into_val(&env));
+
+    let hash1 = client.get_canonical_hash(&fields);
+    let hash2 = client.get_canonical_hash(&fields);
+
+    assert_eq!(hash1, hash2);
+
+    // Ensure different fields result in different hash
+    fields.push_back(456_u64.into_val(&env));
+    let hash3 = client.get_canonical_hash(&fields);
+    assert_ne!(hash1, hash3);
 }
 
 #[test]
