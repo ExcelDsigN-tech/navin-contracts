@@ -1436,6 +1436,28 @@ pub fn emit_escrow_frozen(
     );
 }
 
+/// Emits a `shipment_blocked` event when a shipment cannot transition to InTransit or Delivered
+/// due to unmet dependencies.
+///
+/// # Event Data
+///
+/// | Field                   | Type        | Description                                |
+/// |-------------------------|-------------|--------------------------------------------|
+/// | shipment_id             | `u64`       | Shipment that cannot proceed                |
+/// | caller                  | `Address`   | Address that attempted the transition      |
+/// | unmet_dependencies      | `Vec<u64>`  | Prerequisite shipment IDs not yet complete |
+pub fn emit_shipment_blocked(
+    env: &Env,
+    shipment_id: u64,
+    caller: &Address,
+    unmet_dependencies: soroban_sdk::Vec<u64>,
+) {
+    env.events().publish(
+        (crate::event_topics::SHIPMENT_BLOCKED,),
+        (shipment_id, caller.clone(), unmet_dependencies),
+          );
+}
+
 /// Emits a `platform_fee_collected` event when a fee is deducted from a deposit.
 pub fn emit_platform_fee_collected(env: &Env, shipment_id: u64, treasury: &Address, amount: i128) {
     let event_counter = next_event_counter(env, shipment_id);

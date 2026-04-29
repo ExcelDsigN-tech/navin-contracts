@@ -127,6 +127,7 @@ fn test_debug_event_structure() {
         &hash(&env, 0xAA),
         &Vec::new(&env),
         &deadline,
+        &None,
     );
 
     // What does our target symbol look like as a string?
@@ -200,6 +201,7 @@ fn test_e2e_happy_path_with_milestones_and_token_balances() {
         &hash(&env, 0xAA),
         &milestones,
         &deadline,
+        &None,
     );
     assert_eq!(shipment_id, 1, "first shipment id should be 1");
     assert!(
@@ -415,6 +417,7 @@ fn test_e2e_cancel_refund_path_with_token_balances() {
         &hash(&env, 0x01),
         &Vec::new(&env),
         &deadline,
+        &None,
     );
     assert_eq!(shipment_id, 1);
     assert!(
@@ -509,6 +512,7 @@ fn test_e2e_partial_milestones_then_cancel_via_deadline() {
         &hash(&env, 0xA1),
         &milestones,
         &deadline,
+        &None,
     );
     assert!(
         has_event(&env, "shipment_created"),
@@ -652,6 +656,7 @@ fn test_e2e_deadline_expiry_auto_cancel_and_refund() {
         &hash(&env, 0xB1),
         &Vec::new(&env),
         &deadline,
+        &None,
     );
     assert!(
         has_event(&env, "shipment_created"),
@@ -743,6 +748,7 @@ fn test_regression_milestone_release_event_ordering() {
         &hash(&env, 0x31),
         &milestones,
         &(env.ledger().timestamp() + 86_400),
+        &None,
     );
 
     shipment.deposit_escrow(&company, &shipment_id, &1_000_i128);
@@ -796,6 +802,7 @@ fn test_regression_deadline_refund_event_ordering() {
         &hash(&env, 0x41),
         &Vec::new(&env),
         &(env.ledger().timestamp() + 1),
+        &None,
     );
     shipment.deposit_escrow(&company, &shipment_id, &1_000_i128);
 
