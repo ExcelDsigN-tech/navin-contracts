@@ -668,9 +668,10 @@ pub fn is_shipment_observer(env: &Env, shipment_id: u64, address: &Address) -> b
 
 /// Assign observer role to an address for a specific shipment.
 pub fn set_shipment_observer(env: &Env, shipment_id: u64, observer: &Address) {
-    env.storage()
-        .persistent()
-        .set(&DataKey::ShipmentObserver(shipment_id, observer.clone()), &true);
+    env.storage().persistent().set(
+        &DataKey::ShipmentObserver(shipment_id, observer.clone()),
+        &true,
+    );
     let count = get_observer_count(env, shipment_id);
     set_observer_count(env, shipment_id, count + 1);
 }
@@ -1806,7 +1807,10 @@ pub fn set_settlement(env: &Env, settlement: &crate::types::SettlementRecord) {
 }
 
 /// Get the partial refund record for a shipment.
-pub fn get_partial_refund_record(env: &Env, shipment_id: u64) -> Option<crate::types::PartialRefundRecord> {
+pub fn get_partial_refund_record(
+    env: &Env,
+    shipment_id: u64,
+) -> Option<crate::types::PartialRefundRecord> {
     env.storage()
         .persistent()
         .get(&DataKey::PartialRefundRecord(shipment_id))

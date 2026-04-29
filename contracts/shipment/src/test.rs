@@ -10753,7 +10753,12 @@ fn test_observer_cannot_update_status() {
 
     client.assign_observer_role(&admin, &observer, &shipment_id);
 
-    let result = client.try_update_status(&observer, &shipment_id, &crate::ShipmentStatus::InTransit, &data_hash);
+    let result = client.try_update_status(
+        &observer,
+        &shipment_id,
+        &crate::ShipmentStatus::InTransit,
+        &data_hash,
+    );
     assert_eq!(result, Err(Ok(crate::NavinError::Unauthorized)));
 }
 
@@ -10939,7 +10944,10 @@ fn test_partial_refund_50_percent() {
     assert!(result.is_ok());
 
     let shipment_after = client.get_shipment(&shipment_id);
-    assert_eq!(shipment_after.status, crate::ShipmentStatus::PartiallyRefunded);
+    assert_eq!(
+        shipment_after.status,
+        crate::ShipmentStatus::PartiallyRefunded
+    );
     assert_eq!(shipment_after.escrow_amount, 0);
 }
 
@@ -10976,7 +10984,10 @@ fn test_partial_refund_100_percent_equals_full_refund() {
     assert!(result.is_ok());
 
     let shipment_after = client.get_shipment(&shipment_id);
-    assert_eq!(shipment_after.status, crate::ShipmentStatus::PartiallyRefunded);
+    assert_eq!(
+        shipment_after.status,
+        crate::ShipmentStatus::PartiallyRefunded
+    );
 }
 
 #[test]

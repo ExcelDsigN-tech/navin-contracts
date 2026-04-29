@@ -411,7 +411,12 @@ pub fn emit_escrow_refunded(env: &Env, shipment_id: u64, to: &Address, amount: i
 }
 
 /// Emits an `observer_assigned` event when an observer role is assigned to an address.
-pub fn emit_observer_assigned(env: &Env, shipment_id: u64, observer: &Address, assigned_by: &Address) {
+pub fn emit_observer_assigned(
+    env: &Env,
+    shipment_id: u64,
+    observer: &Address,
+    assigned_by: &Address,
+) {
     let event_counter = next_event_counter(env, shipment_id);
     let idempotency_key = generate_idempotency_key(
         env,
@@ -435,7 +440,12 @@ pub fn emit_observer_assigned(env: &Env, shipment_id: u64, observer: &Address, a
 }
 
 /// Emits an `observer_revoked` event when an observer role is revoked from an address.
-pub fn emit_observer_revoked(env: &Env, shipment_id: u64, observer: &Address, revoked_by: &Address) {
+pub fn emit_observer_revoked(
+    env: &Env,
+    shipment_id: u64,
+    observer: &Address,
+    revoked_by: &Address,
+) {
     let event_counter = next_event_counter(env, shipment_id);
     let idempotency_key = generate_idempotency_key(
         env,
@@ -475,7 +485,10 @@ pub fn emit_escrow_partially_refunded(
         event_counter,
     );
     env.events().publish(
-        (Symbol::new(env, crate::event_topics::ESCROW_PARTIALLY_REFUNDED),),
+        (Symbol::new(
+            env,
+            crate::event_topics::ESCROW_PARTIALLY_REFUNDED,
+        ),),
         (
             shipment_id,
             sender_refund,

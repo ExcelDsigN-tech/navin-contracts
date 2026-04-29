@@ -4338,8 +4338,7 @@ impl NavinShipment {
         let sender_refund = checked_mul_div_i128(escrow_balance, refund_percentage as i128, 100)?;
         let carrier_compensation = escrow_balance - sender_refund;
 
-        let token_contract =
-            storage::get_token_contract(&env).ok_or(NavinError::NotInitialized)?;
+        let token_contract = storage::get_token_contract(&env).ok_or(NavinError::NotInitialized)?;
         let contract_address = env.current_contract_address();
 
         invoke_token_transfer(
