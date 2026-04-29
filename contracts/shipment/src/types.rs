@@ -128,6 +128,10 @@ pub enum DataKey {
     CreationQuotaConfig,
     /// Deterministic action digest stored on proposal creation.
     ProposalDigest(u64),
+    /// Prerequisites for a shipment — shipment_id -> Vec<u64> of prerequisite shipment IDs.
+    ShipmentDeps(u64),
+    /// Shipments depending on this shipment — shipment_id -> Vec<u64> of dependent shipment IDs.
+    ShipmentDependents(u64),
     /// Observer assignment for a specific shipment (shipment_id, observer_address) -> bool.
     ShipmentObserver(u64, Address),
     /// Count of observers for a specific shipment.
