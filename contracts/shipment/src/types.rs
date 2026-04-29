@@ -350,6 +350,8 @@ pub struct Shipment {
     pub integration_nonce: u32,
     /// Whether the shipment is finalized (terminal state reached and escrow cleared).
     pub finalized: bool,
+    /// Optional list of shipment IDs that must be completed before this shipment can transition to InTransit or Delivered.
+    pub depends_on: Option<Vec<u64>>,
 }
 
 /// A checkpoint milestone recorded during shipment transit.
@@ -538,6 +540,7 @@ pub struct ShipmentInput {
     pub data_hash: BytesN<32>,
     pub payment_milestones: Vec<(Symbol, u32)>,
     pub deadline: u64,
+    pub depends_on: Option<Vec<u64>>,
 }
 
 /// Cursor page result for searching shipment IDs by status.

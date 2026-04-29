@@ -426,3 +426,4 @@ mod tests {
         assert_eq!(HASH_DOMAIN_EVIDENCE, 0x0A);
     }
 }
+pub const SHIPMENT_BLOCKED: &str = "shipment_blocked";
